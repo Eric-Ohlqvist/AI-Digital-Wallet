@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Digital Wallet</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --primary-dark: #357ABD;
+            --secondary-color: #c66cf6;
+            --accent-color: #b57aff;
+            --success-color: #4CAF50;
+            --warning-color: #FFC107;
+            --danger-color: #F44336;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --text-gradient: linear-gradient(90deg, #5fb0ff 0%, #9d8aff 50%, #e07cff 100%);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #c1c1ff, #c29cfb, #c66cf6);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: gradientPulse 20s infinite alternate;
+            background-size: 150% 150%;
+            cursor: default;
+            color: #333;
+        }
+        
+        @keyframes gradientPulse {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        .header-container {
+            width: 100%;
+            max-width: 1400px;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .header {
+            font-size: 2.5rem;
+            font-weight: 800;
+            width: 100%;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .header:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(31, 38, 135, 0.2);
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: var(--text-gradient);
+            z-index: -1;
+            border-radius: 15px;
+            animation: borderGlow 4s infinite alternate;
+        }
+        
+        @keyframes borderGlow {
+            0% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .header-text {
+            background: var(--text-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+            animation: shine 3s infinite alternate;
+            text-shadow: 0 2px 10px rgba(255,255,255,0.3);
+            padding: 0 15px;
+            filter: brightness(1.2);
+        }
+        
+        .header-subtext {
+            font-size: 1rem;
+            color: #666;
+            margin-top: 10px;
+            font-weight: 400;
+        }
+        
+        @keyframes shine {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+        
+        .main-container {
+            width: 100%;
+            max-width: 1400px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            width: 100%;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            opacity: 0;
+            transform: translateY(20px);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+        }
+        
+        .card.wide {
+            grid-column: span 2;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+            background: rgba(255, 255, 255, 1);
+            border-color: rgba(198, 108, 246, 0.3);
+        }
+        
+        .card:hover::before {
+            opacity: 1;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at var(--x) var(--y), 
+                          rgba(198, 108, 246, 0.1) 0%, 
+                          transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        
+        .card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .card h2 {
+            color: var(--primary-dark);
+            font-size: 1.5rem;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .card h2::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+        
+        .card:hover h2::after {
+            width: 100%;
+        }
+        
+        .card-icon {
+            font-size: 1.8rem;
+            color: var(--secondary-color);
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 100%;
+            min-height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s;
+        }
+        
+        .card:hover .chart-container {
+            transform: scale(1.03);
+        }
+        
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            transition: filter 0.3s;
+            opacity: 0;
+            animation: fadeIn 1s forwards 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        
+        .card:hover canvas {
+            filter: drop-shadow(0 5px 10px rgba(198, 108, 246, 0.2));
+        }
+        
+        .budget-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        input, select {
+            border: 2px solid rgba(74, 144, 226, 0.3);
+            padding: 12px 15px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 1rem;
+            text-align: center;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.8);
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(198, 108, 246, 0.2);
+            background: white;
+        }
+        
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            width: 100%;
+            max-width: 200px;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        button.secondary {
+            background: var(--secondary-color);
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0.3) 0%,
+                rgba(255, 255, 255, 0) 60%
+            );
+            transform: rotate(30deg);
+            transition: all 0.5s;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        .transaction-list {
+            width: 100%;
+            margin-top: 15px;
+        }
+        
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            align-items: center;
+        }
+        
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .transaction-category {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .category-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(74, 144, 226, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .transaction-amount.income {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+        
+        .transaction-amount.expense {
+            color: var(--danger-color);
+            font-weight: 600;
+        }
+        
+        .goal-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .goal-progress {
+            flex-grow: 1;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: var(--accent-color);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .alert-item {
+            background: rgba(255, 193, 7, 0.1);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--warning-color);
+        }
+        
+        .alert-item.warning {
+            background: rgba(244, 67, 54, 0.1);
+            border-left-color: var(--danger-color);
+        }
+        
+        .alert-item.success {
+            background: rgba(76, 175, 80, 0.1);
+            border-left-color: var(--success-color);
+        }
+        
+        .subscription-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .subscription-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .ai-tip {
+            background: rgba(198, 108, 246, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            position: relative;
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .ai-tip::before {
+            content: 'AI Tip';
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background: var(--secondary-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+        }
+        
+        .tab {
+            padding: 8px 15px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid var(--secondary-color);
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Celebration effects */
+        @keyframes confettiFall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        .budget-celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: var(--secondary-color);
+            opacity: 0;
+            animation: confettiFall 2s ease-in forwards;
+        }
+
+        .encouragement-message {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            animation: slideUp 0.5s ease-out, fadeOut 0.5s ease-out 2.5s forwards;
+            z-index: 1001;
+            font-size: 1.1rem;
+            text-align: center;
+            max-width: 90%;
+        }
+
+        .big-spender-message {
+            background: linear-gradient(to right, gold, #ffd700);
+            color: black;
+            font-weight: bold;
+            text-shadow: 0 1px 1px rgba(255,255,255,0.5);
+        }
+
+        @keyframes slideUp {
+            from { bottom: -50px; opacity: 0; }
+            to { bottom: 20px; opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                font-size: 1.8rem;
+                padding: 20px 15px;
+            }
+            
+            .header-text {
+                padding: 0 10px;
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .card.wide {
+                grid-column: span 1;
+            }
+
+            .encouragement-message {
+                font-size: 1rem;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header-container">
+            <div class="header">
+                <div class="header-text">AI Digital Wallet</div>
+                <div class="header-subtext">Track spending, manage budgets, and analyze financial habits in real time</div>
+            </div>
+        </div>
+        
+        <div class="dashboard">
+            <!-- Financial Dashboard Section -->
+            <section class="card" id="balance-card">
+                <div class="card-header">
+                    <h2>Financial Overview</h2>
+                    <div class="card-icon">💰</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="balanceChart"></canvas>
+                </div>
+                <div class="transaction-list">
+                    <div class="transaction-item">
+                        <div class="transaction-category">
+                            <div class="category-icon">🏠</div>
+                            <div>
+                                <div>Rent Payment</div>
+                                <div class="transaction-date">Today, 10:30 AM</div>
+                            </div>
+                        </div>
+                        <div class="transaction-amount expense">-$1,200.00</div>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="transaction-category">
+                            <div class="category-icon">💼</div>
+                            <div>
+                                <div>Salary Deposit</div>
+                                <div class="transaction-date">Today, 9:00 AM</div>
+                            </div>
+                        </div>
+                        <div class="transaction-amount income">+$3,500.00</div>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="transaction-category">
+                            <div class="category-icon">🍔</div>
+                            <div>
+                                <div>Food & Dining</div>
+                                <div class="transaction-date">Yesterday, 7:30 PM</div>
+                            </div>
+                        </div>
+                        <div class="transaction-amount expense">-$45.75</div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="card" id="budget-card">
+                <div class="card-header">
+                    <h2>Budget & Goals</h2>
+                    <div class="card-icon">🎯</div>
+                </div>
+                <div class="tab-container">
+                    <div class="tab active" onclick="switchTab('budget-tab', this)">Budget</div>
+                    <div class="tab" onclick="switchTab('goals-tab', this)">Goals</div>
+                </div>
+                <div class="tab-content active" id="budget-tab">
+                    <div class="budget-form">
+                        <select id="budget-category">
+                            <option value="general">General Budget</option>
+                            <option value="food">Food & Dining</option>
+                            <option value="entertainment">Entertainment</option>
+                            <option value="transportation">Transportation</option>
+                        </select>
+                        <input type="number" placeholder="Enter budget amount" id="budget-input" required />
+                        <button type="button" onclick="setBudget()">Set Budget</button>
+                        <p id="budget-message"></p>
+                    </div>
+                    <div class="ai-tip">
+                        Based on your spending habits, we recommend increasing your food budget by 15% to avoid frequent overages.
+                    </div>
+                </div>
+                <div class="tab-content" id="goals-tab">
+                    <div class="goal-item">
+                        <div>Emergency Fund</div>
+                        <div class="goal-progress">
+                            <div class="progress-bar" style="width: 65%"></div>
+                        </div>
+                        <div>$3,250/$5,000</div>
+                    </div>
+                    <div class="goal-item">
+                        <div>Vacation Savings</div>
+                        <div class="goal-progress">
+                            <div class="progress-bar" style="width: 30%"></div>
+                        </div>
+                        <div>$600/$2,000</div>
+                    </div>
+                    <div class="goal-item">
+                        <div>New Laptop</div>
+                        <div class="goal-progress">
+                            <div class="progress-bar" style="width: 80%"></div>
+                        </div>
+                        <div>$1,200/$1,500</div>
+                    </div>
+                    <button type="button" class="secondary" style="margin-top: 15px;">+ Add New Goal</button>
+                </div>
+            </section>
+            
+            <section class="card wide" id="spending-card">
+                <div class="card-header">
+                    <h2>Spending Insights</h2>
+                    <div class="card-icon">📊</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="spendingChart"></canvas>
+                </div>
+                <div class="ai-tip">
+                    You're spending 25% more on dining out this month compared to last month. Consider meal prepping to save approximately $120/month.
+                </div>
+            </section>
+            
+            <section class="card" id="alerts-card">
+                <div class="card-header">
+                    <h2>Alerts & Notifications</h2>
+                    <div class="card-icon">🔔</div>
+                </div>
+                <div class="alert-item">
+                    <strong>Unusual Spending</strong>
+                    <p>Your grocery spending is 40% higher than usual this week.</p>
+                </div>
+                <div class="alert-item warning">
+                    <strong>Subscription Increase</strong>
+                    <p>Your Netflix subscription increased to $15.49/month.</p>
+                </div>
+                <div class="alert-item success">
+                    <strong>Savings Milestone</strong>
+                    <p>You've reached 50% of your emergency fund goal!</p>
+                </div>
+            </section>
+            
+            <section class="card" id="subscription-card">
+                <div class="card-header">
+                    <h2>Subscriptions</h2>
+                    <div class="card-icon">🔄</div>
+                </div>
+                <div class="transaction-list">
+                    <div class="subscription-item">
+                        <div>
+                            <div>Netflix</div>
+                            <div class="transaction-date">$15.49/month · Next charge: May 15</div>
+                        </div>
+                        <div class="subscription-actions">
+                            <button type="button" style="padding: 5px 10px; font-size: 0.8rem;">Manage</button>
+                        </div>
+                    </div>
+                    <div class="subscription-item">
+                        <div>
+                            <div>Spotify Premium</div>
+                            <div class="transaction-date">$9.99/month · Next charge: May 20</div>
+                        </div>
+                        <div class="subscription-actions">
+                            <button type="button" style="padding: 5px 10px; font-size: 0.8rem;">Manage</button>
+                        </div>
+                    </div>
+                    <div class="subscription-item">
+                        <div>
+                            <div>Gym Membership</div>
+                            <div class="transaction-date">$29.99/month · Next charge: June 1</div>
+                        </div>
+                        <div class="subscription-actions">
+                            <button type="button" style="padding: 5px 10px; font-size: 0.8rem;">Manage</button>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="secondary" style="margin-top: 10px;">+ Add Subscription</button>
+            </section>
+            
+            <section class="card" id="credit-card">
+                <div class="card-header">
+                    <h2>Credit Health</h2>
+                    <div class="card-icon">💳</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="creditChart"></canvas>
+                </div>
+                <div class="ai-tip">
+                    Your credit score improved by 15 points this month! Keep paying bills on time to reach your target score of 750.
+                </div>
+            </section>
+        </div>
+    </div>
+    
+    <script>
+        // Track mouse position for card glow effect
+        document.addEventListener('mousemove', (e) => {
+            document.querySelectorAll('.card').forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--x', `${x}px`);
+                card.style.setProperty('--y', `${y}px`);
+            });
+        });
+        
+        // Tab switching functionality
+        function switchTab(tabId, element) {
+            const tabContainer = element.parentElement;
+            const contentContainer = tabContainer.parentElement;
+            
+            tabContainer.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            element.classList.add('active');
+            
+            contentContainer.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+        }
+        
+        // Celebration effects
+        function showEncouragement() {
+            const messages = [
+                "Budget set! Your wallet just did a happy dance 💃",
+                "Cha-ching! Your future yacht is looking closer 🛥️",
+                "Money saved! Your pet rock approves 🪨",
+                "Budget achieved! Even Scrooge McDuck is impressed 🦆💰",
+                "Ka-chow! You're financially fabulous ✨",
+                "Success! Your money tree is growing 🌳💵",
+                "Boom! You just defeated the Budget Boss 🎮👾",
+                "Achievement unlocked: Adulting Level 100 🏆",
+                "Nice! Your bank account is blushing 😊",
+                "Wow! Your spreadsheet just swooned 📊😍",
+                "Baller status: Activated 🏀💎",
+                "Your piggy bank is throwing a party 🐷🎉",
+                "Money moves! Your coins are doing cartwheels 🤸‍♂️",
+                "Profit! Time to buy that solid gold pizza 🍕✨",
+                "Budget mastered! Your accountant is crying tears of joy 🧮😭",
+                "Stonks! 📈 (But for real this time)",
+                "Your future self just high-fived you ✋",
+                "Financial wizardry! 🧙‍♂️✨",
+                "You're richer than a fictional character! (Almost) 💼",
+                "Budget set! Your money is now reproducing 🐣💲",
+                "Success! Your wallet just gained 10XP 🎮",
+                "Cha-ching! Incoming dopamine rush 💉😄",
+                "Money saved! Your couch cushion coins are proud 🛋️",
+                "Achievement: Not eating instant noodles tonight 🍜❌",
+                "Budget locked in! Your monopoly man impression is improving 🎩"
+            ];
+            const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+            
+            const msgEl = document.createElement('div');
+            msgEl.className = 'encouragement-message';
+            msgEl.textContent = randomMsg;
+            document.body.appendChild(msgEl);
+            
+            setTimeout(() => msgEl.remove(), 3000);
+        }
+
+        function createConfetti() {
+            const colors = ['#4A90E2', '#c66cf6', '#4CAF50', '#FFC107'];
+            const container = document.createElement('div');
+            container.className = 'budget-celebration';
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = `${Math.random() * 100}vw`;
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+                container.appendChild(confetti);
+            }
+            
+            document.body.appendChild(container);
+            setTimeout(() => container.remove(), 2500);
+        }
+        
+        // Set budget function with celebrations
+        function setBudget() {
+            const budgetInput = document.getElementById('budget-input').value;
+            const budgetCategory = document.getElementById('budget-category').value;
+            const categoryNames = {
+                'general': 'General Budget',
+                'food': 'Food & Dining',
+                'entertainment': 'Entertainment',
+                'transportation': 'Transportation'
+            };
+            
+            if (budgetInput && !isNaN(budgetInput)) {
+                const formattedAmount = parseFloat(budgetInput).toFixed(2);
+                const message = document.getElementById('budget-message');
+                message.textContent = `${categoryNames[budgetCategory]} set to $${formattedAmount}`;
+                
+                // Celebration effects
+                showEncouragement();
+                createConfetti();
+                
+                // Easter egg for large budgets
+                if (budgetInput > 10000) {
+                    setTimeout(() => {
+                        const bigSpenderMessages = [
+                            "Whoa big spender! 🤑 Buying Twitter?",
+                            "Found Elon Musk's secret account! 🚀",
+                            "Someone's getting avocado toast WITH the avocado! 🥑",
+                            "Look at Mr. Moneybags over here! 💼",
+                            "Save some wealth for the rest of us! 😂",
+                            "Is that you, Bezos? 👨‍🚀",
+                            "Breaking news: Local person understands commas in numbers! 📰",
+                            "Warning: May attract gold diggers ⚠️⛏️",
+                            "Your wallet just evolved into a briefcase! 💼✨",
+                            "Congratulations! You can now afford 1/10,000th of a Superbowl ad! 🏈"
+                        ];
+                        const randomBigMsg = bigSpenderMessages[Math.floor(Math.random() * bigSpenderMessages.length)];
+                        
+                        const msg = document.createElement('div');
+                        msg.className = 'encouragement-message big-spender-message';
+                        msg.textContent = randomBigMsg;
+                        document.body.appendChild(msg);
+                        setTimeout(() => msg.remove(), 3000);
+                    }, 1000);
+                }
+                
+                // Temporary animation
+                message.style.transform = 'scale(1.1)';
+                message.style.color = '#c66cf6';
+                setTimeout(() => {
+                    message.style.transform = 'scale(1)';
+                    message.style.color = '';
+                }, 500);
+            }
+        }
+        
+        // Initialize charts
+        function loadCharts() {
+            const ctx1 = document.getElementById('balanceChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Available', 'Spent', 'Saved'],
+                    datasets: [{
+                        data: [3200, 1800, 500],
+                        backgroundColor: ['#4A90E2', '#E04F5F', '#4CAF50'],
+                        borderWidth: 0,
+                        hoverBorderWidth: 2,
+                        hoverBorderColor: '#fff',
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: {
+                                    family: 'Poppins'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleFont: {
+                                family: 'Poppins',
+                                size: 14
+                            },
+                            bodyFont: {
+                                family: 'Poppins',
+                                size: 12
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: $${context.raw}`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+            
+            const ctx2 = document.getElementById('spendingChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Housing', 'Food', 'Transport', 'Entertainment', 'Utilities', 'Other'],
+                    datasets: [{
+                        data: [1200, 450, 200, 300, 150, 250],
+                        backgroundColor: [
+                            'rgba(74, 144, 226, 0.8)',
+                            'rgba(224, 79, 95, 0.8)',
+                            'rgba(255, 193, 7, 0.8)',
+                            'rgba(198, 108, 246, 0.8)',
+                            'rgba(76, 175, 80, 0.8)',
+                            'rgba(158, 158, 158, 0.8)'
+                        ],
+                        hoverBackgroundColor: [
+                            'rgba(74, 144, 226, 1)',
+                            'rgba(224, 79, 95, 1)',
+                            'rgba(255, 193, 7, 1)',
+                            'rgba(198, 108, 246, 1)',
+                            'rgba(76, 175, 80, 1)',
+                            'rgba(158, 158, 158, 1)'
+                        ],
+                        borderRadius: 6,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Poppins'
+                                },
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Poppins'
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleFont: {
+                                family: 'Poppins',
+                                size: 14
+                            },
+                            bodyFont: {
+                                family: 'Poppins',
+                                size: 12
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return '$' + context.raw;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeOutBounce'
+                    }
+                }
+            });
+            
+            const ctx3 = document.getElementById('creditChart').getContext('2d');
+            new Chart(ctx3, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                    datasets: [{
+                        data: [680, 690, 710, 720, 735],
+                        borderColor: '#c66cf6',
+                        backgroundColor: 'rgba(198, 108, 246, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#c66cf6',
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 600,
+                            max: 800,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Poppins'
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Poppins'
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleFont: {
+                                family: 'Poppins',
+                                size: 14
+                            },
+                            bodyFont: {
+                                family: 'Poppins',
+                                size: 12
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Animate cards on load
+        function animateElements() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('visible');
+                }, index * 200);
+            });
+        }
+        
+        // Initialize on DOM load
+        document.addEventListener("DOMContentLoaded", () => {
+            animateElements();
+            loadCharts();
+        });
+    </script>
+</body>
+</html>
